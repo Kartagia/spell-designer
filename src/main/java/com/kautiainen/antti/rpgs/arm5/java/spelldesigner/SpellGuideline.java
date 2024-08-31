@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.kautiainen.antti.rpgs.arm5.java;
+package com.kautiainen.antti.rpgs.arm5.java.spelldesigner;
 
 /**
  * A class representing a spell guideline.

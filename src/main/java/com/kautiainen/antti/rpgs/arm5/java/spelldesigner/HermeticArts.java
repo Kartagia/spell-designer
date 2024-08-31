@@ -88,6 +88,11 @@ public class HermeticArts {
   );
 
   /**
+   * The default Hermetic arts.
+   */
+  public static final HermeticArts DEFAULT_ARTS = new HermeticArts();
+
+  /**
    * The techniques of the arts.
    */
   private NavigableSet<Art> technqiues;

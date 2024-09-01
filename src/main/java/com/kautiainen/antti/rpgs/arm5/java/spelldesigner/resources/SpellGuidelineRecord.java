@@ -2,22 +2,30 @@ package com.kautiainen.antti.rpgs.arm5.java.spelldesigner.resources;
 
 import java.util.Optional;
 
-import com.kautiainen.antti.rpgs.arm5.java.Art;
-import com.kautiainen.antti.rpgs.arm5.java.Art.Form;
-import com.kautiainen.antti.rpgs.arm5.java.Art.Technique;
-import com.kautiainen.antti.rpgs.arm5.java.SpellGuideline;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.Art;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.FormArtType;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.FormInterface;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.SpellGuideline;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.TechniqueArtType;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.TechniqueInterface;
+
 
 
 /**
  * The immutable record of a spell guideline.
  */
-public record SpellGuidelineRecord(Technique tech, Form form, SpellGuideline.GuidelineLevel level, String name, String description) implements Comparable<SpellGuidelineRecord> {
+public record SpellGuidelineRecord(
+  TechniqueInterface<TechniqueArtType> tech,
+  FormInterface<FormArtType> form, 
+  SpellGuideline.GuidelineLevel level,
+  String name,
+  String description) implements Comparable<SpellGuidelineRecord> {
   
   @Override
   public final int compareTo(SpellGuidelineRecord other) {
-    int result = tech().compareTo(other.tech());
+    int result = tech().getName().compareTo(other.tech().getName());
     if (result == 0) {
-      result = form().compareTo(form);
+      result = form().getName().compareTo(other.form().getName());
     }
     if (result == 0) {
       Art.Level myLevel = this.level(), otherLevel = other.level();
@@ -49,7 +57,9 @@ public record SpellGuidelineRecord(Technique tech, Form form, SpellGuideline.Gui
 
   @Override
   public final String toString() {
-    return String.format("%2.2s%2.2s%s: %s. %s", tech().getAbbreviation(), form().getAbbreviation(), Optional.ofNullable((Object)level()).orElse("Generic"), 
+    return String.format("%2.2s%2.2s%s: %s. %s", tech().getAbreviation().orElse(tech().getName()), 
+    form().getAbreviation().orElse(form().getName()),
+    Optional.ofNullable((Object)level()).orElse("Generic"), 
     name(), Optional.ofNullable(description()).orElse(""));
   }
 }

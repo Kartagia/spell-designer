@@ -3,6 +3,7 @@ package com.kautiainen.antti.rpgs.arm5.java.spelldesigner;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -352,8 +353,8 @@ public abstract class Art implements Comparable<Art> {
      * 
      * @return The abbreviation of the art.
      */
-    public String getAbbreviation() {
-        return this.abbrev;
+    public Optional<String> getAbbreviation() {
+        return Optional.ofNullable(this.abbrev);
     }
 
     /**

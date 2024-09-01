@@ -21,6 +21,41 @@ import java.util.function.Supplier;
  */
 public class HermeticArts {
 
+
+  /**
+   * The technique type.
+   */
+  public static final TechniqueArtType TECHNIQUE_TYPE = new TechniqueArtType() {
+
+    @Override
+    public String getKey() {
+      return HermeticArtType.Technique.getKey();
+    }
+
+    @Override
+    public String getName() {
+      return HermeticArtType.Technique.getName();
+    }
+    
+  };
+
+  /**
+   * The technique type.
+   */
+  public static final FormArtType FORM_TYPE = new FormArtType() {
+
+    @Override
+    public String getKey() {
+      return HermeticArtType.Form.getKey();
+    }
+
+    @Override
+    public String getName() {
+      return HermeticArtType.Form.getName();
+    }
+    
+  };
+
   /**
    * The enumeration of the Hermetic Techniques.
    */
@@ -45,6 +80,8 @@ public class HermeticArts {
       }
       this.isTechnique = isTechnique;
     }
+
+
 
     @Override
     public String getKey() {
@@ -176,26 +213,8 @@ public class HermeticArts {
     }
   }
 
-  /**
-   * Crete a Hermetic Art. 
-   */
-  public static class HermeticForm extends Art {
 
-    public HermeticForm(String name) {
-      super(name);
-    }
-
-    public HermeticForm(String name, String abbreviation) throws IllegalArgumentException {
-      super(name, abbreviation);
-    }
-    @Override
-    public final ArtType getType() {
-      return HermeticArtType.Form;
-    }
-
-  }
-
-  public static class HermeticTechnique extends Art  {
+  public static class HermeticTechnique extends Art implements TechniqueInterface<TechniqueArtType> {
 
     public HermeticTechnique(String name) {
       super(name);
@@ -206,9 +225,35 @@ public class HermeticArts {
     }
 
     @Override
-    public final ArtType getType() {
-      return HermeticArtType.Technique;
+    public final TechniqueArtType getType() {
+      return HermeticArts.TECHNIQUE_TYPE;
     }
+
+    @Override
+    public Optional<String> getAbreviation() {
+      return super.getAbbreviation();
+    }
+
   }
 
+  public static class HermeticForm extends Art implements FormInterface<FormArtType> {
+
+    public HermeticForm(String name) {
+      super(name);
+    }
+
+    public HermeticForm(String name, String abbreviation) throws IllegalArgumentException {
+      super(name, abbreviation);
+    }
+
+    @Override
+    public final FormArtType getType() {
+      return HermeticArts.FORM_TYPE;
+    }
+
+    @Override
+    public Optional<String> getAbreviation() {
+      return super.getAbbreviation();
+    }
+  }
 }

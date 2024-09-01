@@ -1,14 +1,13 @@
-package com.kautiainen.antti.rpgs.arm5.java;
+package com.kautiainen.antti.rpgs.arm5.java.spelldesigner;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.regex.Pattern;
-
-import jakarta.ws.rs.NotFoundException;
 
 /**
  * A Hermetic Art.
@@ -23,22 +22,32 @@ public abstract class Art implements Comparable<Art> {
     /**
      * The known arts from string representation of the type to the list of arts.
      */
-    protected static final ConcurrentNavigableMap<String, NavigableSet<Art>> knownArts = new ConcurrentSkipListMap<>();
+    protected static final ConcurrentNavigableMap<ArtType, NavigableSet<Art>> knownArts = new ConcurrentSkipListMap<>();
 
     /**
-     * Initializer of the default arts. 
+     * Add known art tyep.
+     *
+     * @param artType The new art type.
+     * @return True, if and only if the art was added.
      */
-    static {
-        NavigableSet<Art> techniques = new ConcurrentSkipListSet<>();
-        Arrays.asList("Creo", "Intellego", "Muto", "Perdo", "Rego").forEach(
-            artName -> {techniques.add(new Art.Technique(artName));}
-        );
-        knownArts.put(ArtType.Technique.toString(), techniques);
-        NavigableSet<Art> forms = new ConcurrentSkipListSet<>();
-        Arrays.asList("Animal", "Auram", "Aquam", "Corpus", "Herbam", "Ignem", "Imaginem", "Mentem", "Terram", "Vim").forEach(
-            artName -> {forms.add(new Art.Form(artName));}
-        );
-        knownArts.put(ArtType.Form.toString(), forms);
+    protected static final boolean addKnownArtType(Art.ArtType artType) {
+        if (artType == null || knownArts.containsKey(artType)) {
+            return false;
+        } else {
+            knownArts.put(artType, new ConcurrentSkipListSet<>());
+            return true;
+        }
+    }
+
+    /**
+     * Add known art. 
+     *
+     * @param art The added art.
+     * @return True, if and only if the art was added.
+     */
+    protected static final boolean addKnownArt(Art art) {
+        addKnownArtType(art.getType());
+        return knownArts.get(art.getType()).add(art);
     }
 
     /**
@@ -47,16 +56,21 @@ public abstract class Art implements Comparable<Art> {
      * @param typeName The name of the type.
      * @return The set of arts of the given type.
      */
-    protected static java.util.NavigableSet<Art> getArtsOfType(String typeName) {
-        if (knownArts.containsKey(typeName)) {
-            return knownArts.get(typeName);
-        } else {
+    public static java.util.NavigableSet<Art> getArtsOfType(String typeName) {
+        ArtType type = knownArts.keySet().stream().filter( current -> (current.toString().equals(typeName))).findFirst().orElse(null);
+        if (type == null) {
             return Collections.emptyNavigableSet();
+        } else {
+            return Collections.unmodifiableNavigableSet(knownArts.get(type));
         }
     }
 
     public static java.util.SortedSet<Art> getArtsOfType(ArtType type) {
-        return Collections.unmodifiableNavigableSet(getArtsOfType(type.toString()));
+        if (type != null && knownArts.containsKey(type)) {
+            return Collections.unmodifiableNavigableSet(knownArts.get(type));
+        } else {
+            return Collections.emptyNavigableSet();
+        }
     }
 
     /**
@@ -224,22 +238,68 @@ public abstract class Art implements Comparable<Art> {
     }
 
     /**
-     * The enumeration of the hermetic art types.
+     * The interface of the art type.
      */
-    public enum ArtType {
-        Technique, Form;
-    }
+    public interface ArtType {
 
-    /**
-     * The art type of a hermetic technique.
-     */
-    static final ArtType TECHNIQUE = ArtType.Technique;
+        /**
+         * The comaprator of the art types.
+         */
+        static final Comparator<ArtType> COMPARATOR = (ArtType compared, ArtType comparee) -> {
+            int result = compared.getKey().compareTo(comparee.getKey());
+            // Techniues before Forms before neither.
+            if (result == 0) {
+                if (compared.isTechnique()) {
+                    result = (compared.isTechnique() ? 0 : -1);
+                } else if (comparee.isTechnique()) {
+                    result = 1;
+                } else if (compared.isForm()) {
+                    return comparee.isForm() ? 0 : -1;
+                } else if (comparee.isForm()) {
+                    return -1;
+                }
+            }
+            if (result == 0) {
+                return compared.getName().compareTo(comparee.getName());
+            }
+            return result;
+        };
 
-    /**
-     * The art type of a hermetic form.
-     */
-    static final ArtType FORM = Art.ArtType.Form;
-    
+        /**
+         * The key value of the art type.
+         */
+        String getKey();
+
+        /**
+         * The name of the art type.
+         */
+        String getName();
+
+        /**
+         * Is the art type technique used as a verb.
+         * 
+         * @return True, if and only if the art type is technique.
+         */
+        default boolean isTechnique() { return false; } 
+
+        /**
+         * Is the art type form used as a noun.
+         * 
+         * @reutrn True, if and only if the art type is a form.
+         */
+        default boolean isForm() {return !isTechnique(); }
+
+        /**
+         * Natural order comparison by the Art Type.
+         * @param other The art type compared iwth.
+         * @return The result of the {@link java.util.Comparator#compare}.
+         * @throws NullPointerException The other was undefined.
+         */
+        default int compareTo(ArtType other) throws NullPointerException {
+            return COMPARATOR.compare(this, other);
+        }
+    };
+
     /**
      * The name of the art.
      */
@@ -293,8 +353,8 @@ public abstract class Art implements Comparable<Art> {
      * 
      * @return The abbreviation of the art.
      */
-    public String getAbbreviation() {
-        return this.abbrev;
+    public Optional<String> getAbbreviation() {
+        return Optional.ofNullable(this.abbrev);
     }
 
     /**
@@ -306,7 +366,7 @@ public abstract class Art implements Comparable<Art> {
 
     @Override
     public int compareTo(Art other) {
-        int result = this.getType().compareTo(other.getType());
+        int result = ArtType.COMPARATOR.compare(this.getType(), other.getType());
         if (result == 0) {
             result = this.getName().compareTo(other.getName());
         }
@@ -315,99 +375,32 @@ public abstract class Art implements Comparable<Art> {
 
 
     /**
-     * A technique is an implementation of an art representing a noun.
-     * 
-     * @author Antti Kautiainen <antti@kautiainen.com>
+     * The ininial setting of the art name.
+     * @param name The name of the art.
+     * @throws IllegalStateException The name has already been set.
+     * @throws IllegalArgumentException The name was invalid.
      */
-    public static class Technique extends Art {
-
-        /**
-         * Create a new techinique.
-         * 
-         * @param name The name of the technique. 
-         * @param abbrev The abbreviation of the technique.
-         */
-        public Technique(String name, String abbrev) throws IllegalArgumentException {
-            super(name, abbrev);
-        }
-
-        public Technique(String name) throws IllegalArgumentException {
-            super(name);
-        }
-
-        @Override
-        public final ArtType getType() {
-            return Art.TECHNIQUE;
-        }
-
-        /***
-         * Get Technique from value.
-         *  
-         * @param value The name or abbreviation of the technique.
-         * @return The technique with given abbrevaition or name.
-         * @throws NotFoundException There is no such technique.
-         */
-        public static com.kautiainen.antti.rpgs.arm5.java.Art.Technique valueOf(String value) throws NotFoundException {
-            return (Art.Technique)getArtsOfType(ArtType.Technique).stream().filter( art -> (art.getAbbreviation().equals(value) || art.getName().equals(value))).findFirst()
-                .orElseThrow(() -> (new NotFoundException("No such technique exists")));
-        }
-    }
-
-
     protected void setName(String name) throws IllegalStateException, IllegalArgumentException {
-        if (this.abbrev != null) throw new IllegalStateException("The name is already set");
-
+        if (this.name != null) throw new IllegalStateException("The name is already set");
+        if (validName(name)) {
+            this.name = name;
+        } else {
+            throw new IllegalArgumentException("Invalid name");
+        }
     }
-
-    public void setAbbrev(String abbrev) throws IllegalStateException, IllegalArgumentException {
-        if (this.abbrev != null) throw new IllegalStateException("The abbbreviation is already set");
-    }
-
 
     /**
-     * A form is an implementation of an art representing a noun.
-     * 
-     * @author Antti Kautiainen <antti@kautiainen.com>
+     * The ininial setting of the abbreviation of the art.
+     * @param abbrev The abbreviation of the art.
+     * @throws IllegalStateException The abbreviation has already been set.
+     * @throws IllegalArgumentException The abbreviation was invalid.
      */
-    public static class Form extends Art {
-
-        /**
-         * Create a new form.
-         * 
-         * @param name The name of the form. 
-         * @param abbrev The abbreviation of the form.
-         */
-        public Form(String name, String abbrev) throws IllegalArgumentException {
-            super(name, abbrev);
-        }
-
-        /**
-         * Create a new form with abbreviation of 2 first letters of the name.
-         * 
-         * @param name The name of the form. 
-         */
-        public Form(String name) throws IllegalArgumentException {
-            super(name);
-        }
-
-        @Override
-        public final ArtType getType() {
-            return Art.FORM;
-        }
-
-
-        /***
-         * Get a Form from value.
-         *  
-         * @param value The name or abbreviation of a form.
-         * @return The technique with given abbrevaition or name.
-         * @throws NotFoundException There is no such Form.
-         */
-        public static com.kautiainen.antti.rpgs.arm5.java.Art.Form valueOf(String value) throws NotFoundException {
-            return (Art.Form)getArtsOfType(ArtType.Form).stream().filter( art -> (art.getAbbreviation().equals(value) || art.getName().equals(value))).findFirst()
-                .orElseThrow(() -> (new NotFoundException("No such technique exists")));
+    public void setAbbrev(String abbrev) throws IllegalStateException, IllegalArgumentException {
+        if (this.abbrev != null) throw new IllegalStateException("The abbbreviation is already set");
+        if (validAbbreviation(abbrev)) {
+            this.abbrev = abbrev;
+        } else {
+            throw new IllegalArgumentException("Invalid abbreviation");
         }
     }
-
-
 }

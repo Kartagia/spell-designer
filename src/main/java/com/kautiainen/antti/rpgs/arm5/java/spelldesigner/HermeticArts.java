@@ -214,6 +214,9 @@ public class HermeticArts {
   }
 
 
+  /**
+   * Class representing a hermetic technique.
+   */
   public static class HermeticTechnique extends Art implements TechniqueInterface<TechniqueArtType> {
 
     public HermeticTechnique(String name) {
@@ -255,5 +258,30 @@ public class HermeticArts {
     public Optional<String> getAbreviation() {
       return super.getAbbreviation();
     }
+  }
+
+
+  /**
+   * Get technique from the arts.
+   *
+   * @param techniqueName The name of the technique.
+   * @return The technique with given name, if the arts has one.
+   */
+  public Optional<HermeticTechnique> getTechnique(String techniqueName) {
+    return Optional.ofNullable(
+      (HermeticTechnique)this.technqiues.stream().filter( current -> (current.getName().equals(techniqueName))).findFirst().orElse(null)
+    );
+  }
+
+  /**
+   * Get form from the arts.
+   *
+   * @param formName The name of the form.
+   * @return The form with given name, if the arts has one.
+   */
+  public Optional<HermeticForm> getForm(String formName) {
+    return Optional.ofNullable(
+      (HermeticForm)this.forms.stream().filter( current -> (current.getName().equals(formName))).findFirst().orElse(null)
+    );
   }
 }

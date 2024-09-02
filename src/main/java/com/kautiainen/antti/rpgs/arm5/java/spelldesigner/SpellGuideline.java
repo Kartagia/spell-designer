@@ -7,6 +7,7 @@ package com.kautiainen.antti.rpgs.arm5.java.spelldesigner;
 
 import java.util.Optional;
 
+import jakarta.annotation.Nonnull;
 import jakarta.resource.spi.IllegalStateException;
 
 
@@ -93,14 +94,30 @@ FORM extends FormInterface<FORM_TYPE>> {
    */
   public static class MagnitudeReference implements LevelReference {
 
+    /**
+     * The error message of an invalid magnitude modifier.
+     */
+    public static final String INVALID_MAGNITUDE_MODIFIER_MESSAGE = "Invalid magnitude modifier";
+    
+    /**
+     * The magnitude modifier of the reference.
+     * An undefined value indicates the modifier is not yet initialized.
+     */
     private Integer modifier = null;
 
+    /**
+     * Create an ninitialized magnitude reference.
+     */
     public MagnitudeReference() {
-      this(0);
     }
 
+    /**
+     * Create a magnitude modifier  with given magnitude modifiers.
+     * 
+     * @throws IllegalArgumentException The given magnitude modifier is invalid.
+     */
     @SuppressWarnings("")
-    public MagnitudeReference(int magnitudeModifier) {
+    public MagnitudeReference(int magnitudeModifier) throws IllegalArgumentException {
       try {
         setMagnitudeModifier(modifier);
       } catch(IllegalStateException ase){
@@ -129,7 +146,7 @@ FORM extends FormInterface<FORM_TYPE>> {
       if (validModifier(modifier)) {
         this.modifier = modifier;
       } else {
-        throw new IllegalArgumentException("Invalid magnitude modifier");
+        throw new IllegalArgumentException(INVALID_MAGNITUDE_MODIFIER_MESSAGE);
       }
     }
 
@@ -144,6 +161,12 @@ FORM extends FormInterface<FORM_TYPE>> {
       else return toString(level.shortValue());
     }
 
+    /**
+     * Get the strign representation of the magnitude modifier with
+     * given actual level. 
+     * @param level The actual level.
+     * @return The string representation of the magnitdue reference with given level.
+     */
     public String toString(short level) {
       return String.format("%d", magnitudeToLevel((short)(levelToMagnitude(level) + modifier)));
     }
@@ -157,7 +180,13 @@ FORM extends FormInterface<FORM_TYPE>> {
       }
     }
 
-    public String toString(Art.Level level) {
+    /**
+     * Get the string representation of the magnitude modifier with given level.
+     * 
+     * @param level The actual level.
+     * @return Always defined string giving the magnitude modifier of the skill. 
+     */
+    public String toString(@Nonnull Art.Level level) {
       if (level.isAbsent()) {
         return toString();
       } else {

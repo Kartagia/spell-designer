@@ -195,12 +195,29 @@ FORM extends FormInterface<FORM_TYPE>> {
     }
   }
 
+  /**
+   * The sequence mantitude reference contains magntude reference withing a
+   * character seqeunce.
+   */
   public static class SequenceWithMagnitudeReference extends MagnitudeReference {
 
+    /**
+     * The prefix of the magnitude reference. The prefix leads the reference.
+     */
     private String prefix = "";
 
+    /**
+     * The suffix of the magnitude reference. The suffix follows the reference.
+     */
     private String suffix = "";
 
+    /**
+     * Create a magnitude modifier with a magnitude modifier, a prefix, and a suffix text.
+     * @param prefix The prefix of the modifier. An undefined value defaults to an empty value.
+     * @param modifier The magnitude modifier of the magnitude reference.
+     * @param suffix The suffix of the modifier. An undefiend value defaults to an empty value.
+     * @throws IllegalArgumentException The modifier was ivnalid. 
+     */
     public SequenceWithMagnitudeReference(String prefix, short modifier, String suffix) {
       super(modifier);
       this.prefix = (prefix == null ? "" : prefix);

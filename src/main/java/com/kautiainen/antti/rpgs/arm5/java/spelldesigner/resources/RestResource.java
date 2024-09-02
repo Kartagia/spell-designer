@@ -30,7 +30,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
-@Path("/guideline")
+@Path("/api/guideline")
 public class RestResource {
     
     

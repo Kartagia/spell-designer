@@ -8,13 +8,19 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 
-import com.kautiainen.antti.rpgs.arm5.java.Art;
-import com.kautiainen.antti.rpgs.arm5.java.SpellGuideline;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.FormArtType;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.FormInterface;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.HermeticArts;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.SpellGuideline;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.TechniqueArtType;
+import com.kautiainen.antti.rpgs.arm5.java.spelldesigner.TechniqueInterface;
+
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -167,7 +173,10 @@ public class RestResource {
             } else {
                 guidelines = new CopyOnWriteArrayList<>();
             }
-            SpellGuidelineRecord record = new SpellGuidelineRecord(Art.Technique.valueOf(tech), Art.Form.valueOf(form), SpellGuideline.GuidelineLevel.valueOf(level), 
+            SpellGuidelineRecord record = new SpellGuidelineRecord(
+                parseTechnique(tech), 
+                parseForm(form),
+                SpellGuideline.GuidelineLevel.valueOf(level), 
             name, 
             description);
             if (guidelines.stream().filter( current -> (current.name().equals(name))).findAny().isPresent()) {
@@ -181,5 +190,27 @@ public class RestResource {
 
             return Response.created(context.getRequestUri()).build();
         }
+    }
+
+    /**
+     * Parse form form from name.
+     *
+     * @param form The parsed form name.
+     * @return The form with given name.
+     * @throws NotFoundException The form does not exist.
+     */
+    public FormInterface<FormArtType> parseForm(String form) throws NotFoundException {
+        return HermeticArts.DEFAULT_ARTS.getForm(form).orElseThrow( () -> (new NotFoundException("No such form exists")));
+    }
+
+    /**
+     * Parse technique from name.
+     *
+     * @param tech The pared technqiue name.
+     * @return The technqiue with given name.
+     * @throws NotFoundException The technique does not exist.
+     */
+    public TechniqueInterface<TechniqueArtType> parseTechnique(String tech) throws NotFoundException {
+        return HermeticArts.DEFAULT_ARTS.getTechnique(tech).orElseThrow( () -> (new NotFoundException("No such technique exists")));
     }
 }
